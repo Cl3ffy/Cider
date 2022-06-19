@@ -4,7 +4,10 @@ const Events = {
 
 // add event listener for when window.location.hash changes
         window.addEventListener("hashchange", function () {
-            app.appRoute(window.location.hash)
+            app.page = "blank"
+            setTimeout(()=>{
+                app.appRoute(window.location.hash)
+            }, 100)
         });
 
         window.addEventListener("mouseup", (e) => {
@@ -21,7 +24,7 @@ const Events = {
             // CTRL + R
             if (event.keyCode === 82 && event.ctrlKey) {
                 event.preventDefault()
-                bootbox.confirm("Reload Cider?", (res)=>{
+                bootbox.confirm(app.getLz('term.reload'), (res)=>{
                     if (res) {
                         window.location.reload()
                     }
@@ -87,8 +90,6 @@ const Events = {
             }
             setTimeout(refreshFocus, 200);
         }
-
-        app.getHTMLStyle()
 
         refreshFocus();
     }

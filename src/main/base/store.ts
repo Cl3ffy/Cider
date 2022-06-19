@@ -13,7 +13,7 @@ export class Store {
         "general": {
             "close_button_hide": false,
             "discordrpc": {
-                "enabled": false,
+                "enabled": true,
                 "client": "Cider",
                 "clear_on_pause": true,
                 "hide_buttons": false,
@@ -84,23 +84,39 @@ export class Store {
                 ],
                 "webRemote": [
                     "CommandOrControl",
+                    process.platform == "darwin" ? "Option" : (process.platform == "linux" ? "Shift" : "Alt"),
                     "W"
                 ],
                 "audioSettings": [
-                    process.platform == "darwin" ? "Option" : "Shift",
+                    "CommandOrControl",
+                    process.platform == "darwin" ? "Option" : (process.platform == "linux" ? "Shift": "Alt"),
                     "A"
                 ],
                 "pluginMenu": [
-                    process.platform == "darwin" ? "Option" : "Shift",
+                    "CommandOrControl",
+                    process.platform == "darwin" ? "Option" : (process.platform == "linux" ? "Shift": "Alt"),
                     "P"
                 ],
                 "castToDevices": [
-                    process.platform == "darwin" ? "Option" : "Shift",
+                    "CommandOrControl",
+                    process.platform == "darwin" ? "Option" : (process.platform == "linux" ? "Shift": "Alt"),
                     "C"
                 ],
                 "settings": [
                     "CommandOrControl", // Who the hell uses a different key for this? Fucking Option?
                     ","
+                ],
+                "zoomn": [
+                    "Control",
+                    "numadd",
+                ],
+                "zoomt": [
+                    "Control",
+                    "numsub",
+                ],
+                "zoomrst": [
+                    "Control",
+                    "num0",
                 ],
                 "openDeveloperTools": [
                     "CommandOrControl",
@@ -202,7 +218,10 @@ export class Store {
             },
             "windowControlPosition": 0, // 0 default right
             "nativeTitleBar": false,
-            "uiScale": 1.0
+            "windowColor": "#000000",
+            "customAccentColor": false,
+            "accentColor": "#fc3c44",
+            "purplePodcastPlaybackBar": false
         },
         "lyrics": {
             "enable_mxm": false,
