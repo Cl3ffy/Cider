@@ -1156,7 +1156,16 @@
                                 </button>
                             </div>
                         </div>
-
+                        <div class="md-option-line">
+                            <div class="md-option-segment">
+                                {{'Local Songs'}}
+                            </div>
+                            <div class="md-option-segment md-option-segment_auto">
+                                <button class="md-btn" @click="openLocalSongsPathMenu">
+                                    {{'Edit Paths'}}
+                                </button>
+                            </div>
+                        </div>
                         <div class="md-option-line">
                             <div class="md-option-segment">
                                 {{$root.getLz('settings.option.experimental.reinstallwidevine')}}
@@ -1511,6 +1520,9 @@
             },
             reloadDiscordRPC() {
                 ipcRenderer.send('reloadRPC')
+            },
+            openLocalSongsPathMenu() {
+                app.modals.pathMenu = true
             }
         }
     })
