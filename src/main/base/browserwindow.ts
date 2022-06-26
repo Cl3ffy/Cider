@@ -1255,7 +1255,7 @@ export class BrowserWindow {
                                             "assetUrl":  "file:///" +audio,
                                             "contentAdvisory": "",
                                             "releaseDateTime": "2022-05-13T00:23:00Z",
-                                            "durationInMilliseconds": Math.floor((metadata.format.duration?? 0) * 1000),
+                                            "durationInMillis": Math.floor((metadata.format.duration?? 0) * 1000),
                                             
                                             "offers": [
                                                 {
