@@ -1,9 +1,9 @@
-import {join} from "path";
-import {app, BrowserWindow as bw, ipcMain, ShareMenu, shell, screen, dialog} from "electron";
+import { join } from "path";
+import { app, BrowserWindow as bw, ipcMain, ShareMenu, shell, screen, dialog } from "electron";
 import * as windowStateKeeper from "electron-window-state";
 import * as express from "express";
 import * as getPort from "get-port";
-import {search} from "youtube-search-without-api-key";
+import { search } from "youtube-search-without-api-key";
 import {
     existsSync,
     rmSync,
@@ -16,19 +16,18 @@ import {
     rmdirSync,
     lstatSync,
 } from "fs";
-import {Stream} from "stream";
-import {networkInterfaces} from "os";
+import { Stream } from "stream";
+import { networkInterfaces } from "os";
 import * as mm from 'music-metadata';
 import fetch from 'electron-fetch'
-import {wsapi} from "./wsapi";
-import {utils} from './utils';
-import {Plugins} from "./plugins";
-import {watch} from "chokidar";
+import { wsapi } from "./wsapi";
+import { utils } from './utils';
+import { Plugins } from "./plugins";
+import { watch } from "chokidar";
 import * as os from "os";
 import wallpaper from "wallpaper";
 import * as AdmZip from "adm-zip";
-import * as path from 'path';
-const { readdir } = require('fs').promises;
+import { LocalFiles } from "../providers/local/";
 
 
 /**
@@ -40,12 +39,11 @@ const { readdir } = require('fs').promises;
 export class BrowserWindow {
     public static win: any | undefined = null;
     private devMode: boolean = !app.isPackaged;
+    public static express: any | undefined = null;
 
     private audioStream: any = new Stream.PassThrough();
     private headerSent: any = false;
     private chromecastIP: any = [];
-    private localSongs: any = [];
-    private localSongsArts: any = [];
     private clientPort: number = 0;
     private remotePort: number = 6942;
     private EnvironmentVariables: object = {
@@ -203,12 +201,12 @@ export class BrowserWindow {
                     component: `<cider-browse :data="browsepage"></cider-browse>`,
                     condition: `page == 'browse'`,
                     onEnter: ``
-                },{
+                }, {
                     page: "groupings",
                     component: `<cider-groupings :data="browsepage"></cider-groupings>`,
                     condition: `page == 'groupings'`,
                     onEnter: ``
-                },{
+                }, {
                     page: "charts",
                     component: `<cider-charts :data="browsepage"></cider-charts>`,
                     condition: `page == 'charts'`,
@@ -294,7 +292,7 @@ export class BrowserWindow {
         show: false,
         // backgroundColor: "#1E1E1E",
         titleBarStyle: 'hidden',
-        trafficLightPosition: {x: 15, y: 20},
+        trafficLightPosition: { x: 15, y: 20 },
         webPreferences: {
             experimentalFeatures: true,
             nodeIntegration: true,
@@ -360,7 +358,7 @@ export class BrowserWindow {
      * @yields {object} Electron browser window
      */
     async createWindow(): Promise<Electron.BrowserWindow> {
-        this.clientPort = await getPort({port: 9000});
+        this.clientPort = await getPort({ port: 9000 });
         BrowserWindow.verifyFiles();
         this.StartWatcher(utils.getPath('themes'));
 
@@ -407,8 +405,9 @@ export class BrowserWindow {
         }
 
         // Start the webserver for the browser window to load
-
+        // LocalFiles.DB.init()
         this.startWebServer();
+
 
         BrowserWindow.win = new bw(this.options);
         // cant be built in CI 
@@ -465,7 +464,7 @@ export class BrowserWindow {
      */
     private startWebServer(): void {
         const app = express();
-
+        BrowserWindow.express = app;
         app.use(express.static(join(utils.getPath('srcPath'), "./renderer/")));
         app.set("views", join(utils.getPath('srcPath'), "./renderer/views"));
         app.set("view engine", "ejs");
@@ -497,9 +496,9 @@ export class BrowserWindow {
         app.get("/cideraudio/impulses/:file", (req, res) => {
             const impulseExternals = join(utils.getPath("externals"), "/impulses/")
             const impulseFile = join(impulseExternals, req.params.file)
-            if(existsSync(impulseFile)) {
+            if (existsSync(impulseFile)) {
                 res.sendFile(impulseFile)
-            }else{
+            } else {
                 res.sendFile(join(utils.getPath('srcPath'), "./renderer/audio/impulses/" + req.params.file))
             }
         })
@@ -549,23 +548,6 @@ export class BrowserWindow {
                 res.send(`// Theme not found - ${userThemePath}`);
             }
         });
-
-        app.get("/ciderlocal/:songs", (req, res) => {
-            const audio = atob(req.params.songs.replace(/_/g, '/').replace(/-/g, '+'));
-            //console.log('auss', audio)
-            let data = {data: 
-             this.localSongs.filter((f: any) => audio.split(',').includes(f.id))};
-            res.send(data);
-        });
-
-        app.get("/ciderlocalart/:songs", (req, res) => {
-            const audio = req.params.songs;
-            // metadata.common.picture[0].data.toString('base64')
-            let data = 
-             this.localSongsArts.filter((f: any) => f.id == audio);
-            res.status(200).send(Buffer.from(data[0]?.url, 'base64'));
-        });
-        
 
         app.get("/themes/:theme/*", (req: { params: { theme: string, 0: string } }, res) => {
             const theme = req.params.theme;
@@ -630,6 +612,9 @@ export class BrowserWindow {
             utils.getWindow().reload()
             res.redirect(`https://connect.cidercollective.dev/linked.html`)
         });
+
+        LocalFiles.setupHandlers()
+
         // [Connect] Set auth URL in store for `shell.openExternal`
         utils.setStoreValue('cc_authURL', `https://connect.cidercollective.dev/callback/discord?app=cider&appPort=${this.clientPort}`)
         console.log(`[Connect] Auth URL: ${utils.getStoreValue('cc_authURL')}`)
@@ -649,7 +634,7 @@ export class BrowserWindow {
         remote.use(express.static(join(utils.getPath('srcPath'), "./web-remote/")))
         remote.set("views", join(utils.getPath('srcPath'), "./web-remote/views"));
         remote.set("view engine", "ejs");
-        getPort({port: 6942}).then((port: number) => {
+        getPort({ port: 6942 }).then((port: number) => {
             this.remotePort = port;
             // Start Remote Discovery
             this.broadcastRemote()
@@ -686,7 +671,7 @@ export class BrowserWindow {
                     callback({
                         redirectURL: `http://localhost:${this.clientPort}/ciderlocal/${Buffer.from(text).toString('base64url')}`,
                     });
-                }else {
+                } else {
                     callback({
                         cancel: false,
                     });
@@ -728,7 +713,7 @@ export class BrowserWindow {
                     'KHTML, like Gecko) Mobile/17D50 UCBrowser/12.8.2.1268 Mobile AliApp(TUnionSDK/0.1.20.3) '
                     details.requestHeaders['Referer'] = "https://y.qq.com/portal/player.html"
                 }
-                callback({requestHeaders: details.requestHeaders});
+                callback({ requestHeaders: details.requestHeaders });
             }
         );
 
@@ -785,7 +770,7 @@ export class BrowserWindow {
             const Jimp = require("jimp")
             const img = await Jimp.read(wpPath)
             const blurAmount = args.blurAmount ?? 256
-            if(blurAmount) {
+            if (blurAmount) {
                 img.blur(blurAmount)
             }
             const screens = await screen.getAllDisplays()
@@ -822,7 +807,7 @@ export class BrowserWindow {
                     }
                     // if path is directory, delete it
                     if (lstatSync(path).isDirectory()) {
-                        await rmdirSync(path, {recursive: true});
+                        await rmdirSync(path, { recursive: true });
                     } else {
                         // if path is file, delete it
                         await unlinkSync(path);
@@ -853,7 +838,7 @@ export class BrowserWindow {
             // remove WidevineCDM from appdata folder
             const widevineCdmPath = join(app.getPath("userData"), "./WidevineCdm");
             if (existsSync(widevineCdmPath)) {
-                rmSync(widevineCdmPath, {recursive: true, force: true})
+                rmSync(widevineCdmPath, { recursive: true, force: true })
             }
             // reinstall WidevineCDM
             app.relaunch()
@@ -1145,7 +1130,7 @@ export class BrowserWindow {
 
         // Move window
         ipcMain.on("windowmove", (_event, x, y) => {
-            BrowserWindow.win.setBounds({x, y});
+            BrowserWindow.win.setBounds({ x, y });
         });
 
         //Fullscreen
@@ -1160,7 +1145,7 @@ export class BrowserWindow {
 
         //Fullscreen
         ipcMain.on('detachDT', (_event, _) => {
-            BrowserWindow.win.webContents.openDevTools({mode: 'detach'});
+            BrowserWindow.win.webContents.openDevTools({ mode: 'detach' });
         })
 
         ipcMain.handle('relaunchApp', (_event, _) => {
@@ -1197,91 +1182,10 @@ export class BrowserWindow {
         });
 
 
-        ipcMain.on("scanLibrary", async (event, folders) => {
-            async function getFiles(dir : any) {
-                const dirents = await readdir(dir, { withFileTypes: true });
-                const files = await Promise.all(dirents.map((dirent: any) => {
-                  const res = path.resolve(dir, dirent.name);
-                  return dirent.isDirectory() ? getFiles(res) : res;
-                }));
-                return Array.prototype.concat(...files);
-              }
-                if (folders == null || folders.length == null || folders.length == 0) folders = ["D:\\Music"]
-                console.log('folders', folders)
-                let files: any[] = []
-                for (var folder of folders){  
-                    // get files from the Music folder
-                    files = files.concat(await getFiles(folder))
-                }
-           
-                //console.log("cider.files", files2);
-                let supporttedformats = ["mp3", "aac", "webm", "flac", "m4a", "ogg", "wav", "opus"]
-                let audiofiles = files.filter(f => supporttedformats.includes(f.substring(f.lastIndexOf('.') + 1)));
-                // console.log("cider.files2", audiofiles, audiofiles.length);
-                let metadatalist = []
-                let metadatalistart = []
-                let numid = 0;
-                for (var audio of audiofiles) {
-                    try{
-                        const metadata = await mm.parseFile(audio);
-                        if (metadata != null){ 
-                            let form = {
-                                        "id": "ciderlocal" + numid,
-                                        "type": "podcast-episodes",
-                                        "href": audio,
-                                        "attributes": {
-                                            "artwork": {
-                                                "width": 3000,
-                                                "height": 3000,
-                                                "url": "/ciderlocalart/" + "ciderlocal" + numid,
-                                            },
-                                            "topics": [],
-                                            "url": "",
-                                            "subscribable": true,
-                                            "mediaKind": "audio",
-                                            "genreNames": [
-                                                ""
-                                            ],
-                                            // "playParams": { 
-                                            //     "id": "ciderlocal" + numid, 
-                                            //     "kind": "podcast", 
-                                            //     "isLibrary": true, 
-                                            //     "reporting": false },
-                                            "trackNumber": metadata.common.track?.no ?? 0, 
-                                            "discNumber": metadata.common.disk?.no ?? 0, 
-                                            "name": metadata.common.title ?? audio.substring(audio.lastIndexOf('\\') + 1),
-                                            "albumName": metadata.common.album,
-                                            "artistName": metadata.common.artist,
-                                            "copyright": metadata.common.copyright ?? "",
-                                            "assetUrl":  "file:///" +audio,
-                                            "contentAdvisory": "",
-                                            "releaseDateTime": `${metadata?.common?.year ?? '2022'}-05-13T00:23:00Z`,
-                                            "durationInMillis": Math.floor((metadata.format.duration?? 0) * 1000),
-                                            
-                                            "offers": [
-                                                {
-                                                    "kind": "get",
-                                                    "type": "STDQ"
-                                                }
-                                            ],
-                                            "contentRating": "clean"
-                                        }
-                            };
-                        metadatalistart.push({
-                            id : "ciderlocal" + numid,
-                            url: metadata.common.picture != undefined ? metadata.common.picture[0].data.toString('base64') : "",
-                        })
-                        numid += 1;
-                        metadatalist.push(form)}
-                    } catch (e){}    
-                } 
-                // console.log('metadatalist', metadatalist);
-                this.localSongs = metadatalist;
-                this.localSongsArts = metadatalistart;
-                BrowserWindow.win.webContents.send('getUpdatedLocalList', metadatalist);
-            }
-
-            )
+        ipcMain.handle("scanLibrary", async (event, folders) => {
+            const metadatalist = await LocalFiles.scanLibrary()
+            BrowserWindow.win.webContents.send('getUpdatedLocalList', metadatalist);
+        })
 
         ipcMain.on('writeWAV', (event, leftpcm, rightpcm, bufferlength) => {
 
@@ -1449,8 +1353,8 @@ export class BrowserWindow {
                     console.log('sc', SoundCheckTag)
                     BrowserWindow.win.webContents.send('SoundCheckTag', SoundCheckTag)
                 }).catch(err => {
-                console.log(err)
-            });
+                    console.log(err)
+                });
         });
 
 
@@ -1481,7 +1385,7 @@ export class BrowserWindow {
 
         ipcMain.handle('folderSelector', async (_event) => {
             let u = await dialog.showOpenDialog({
-                properties: ['openDirectory','multiSelections']
+                properties: ['openDirectory', 'multiSelections']
             });
             return u.filePaths
         });
@@ -1580,10 +1484,10 @@ export class BrowserWindow {
         // Set window Handler
         BrowserWindow.win.webContents.setWindowOpenHandler((x: any) => {
             if (x.url.includes("apple") || x.url.includes("localhost")) {
-                return {action: "allow"};
+                return { action: "allow" };
             }
             shell.openExternal(x.url).catch(console.error);
-            return {action: "deny"};
+            return { action: "deny" };
         });
     }
 
@@ -1639,7 +1543,7 @@ export class BrowserWindow {
             "CtlN": "Cider",
             "iV": "196623"
         };
-        let server2 = mdns.createAdvertisement(x, `${await getPort({port: 3839})}`, {
+        let server2 = mdns.createAdvertisement(x, `${await getPort({ port: 3839 })}`, {
             name: encoded,
             txt: txt_record
         });
