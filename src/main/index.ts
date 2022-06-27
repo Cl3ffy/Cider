@@ -13,9 +13,6 @@ import {Plugins} from "./base/plugins";
 import {BrowserWindow} from "./base/browserwindow";
 import {init as Sentry} from '@sentry/electron';
 import {RewriteFrames} from "@sentry/integrations";
-import {ProviderDB} from "./providers/local/db";
-
-ProviderDB.init()
 
 // Analytics for debugging fun yeah.
 Sentry({
