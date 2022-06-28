@@ -25,207 +25,10 @@ export default class LastFMPlugin {
     }
 
 
-    authenticate() {
-        try {
-            if (this._store.lastfm.auth_token) {
-                this._store.lastfm.enabled = true;
-            }
-
-            if (!this._store.lastfm.enabled || !this._store.lastfm.auth_token) {
-                this._store.lastfm.enabled = false;
-                return
-            }
-            /// dont move this require to top , app wont load
-            const LastfmAPI = require('lastfmapi');
-            const lfmAPI = new LastfmAPI({
-                'api_key': this.apiCredentials.key,
-                'secret': this.apiCredentials.secret
-            });
-
-            this._lastfm = Object.assign(lfmAPI, {cachedAttributes: false, cachedNowPlayingAttributes: false});
-
-            fs.stat(this.sessionPath, (err: any) => {
-                if (err) {
-                    console.error("[LastFM][Session] Session file couldn't be opened or doesn't exist,", err)
-                    console.log("[LastFM][Auth] Beginning authentication from configuration")
-                    console.log("[LastFM][tk]", this._store.lastfm.auth_token)
-                    this._lastfm.authenticate(this._store.lastfm.auth_token, (err: any, session: any) => {
-                        if (err) {
-                            throw err;
-                        }
-                        console.log("[LastFM] Successfully obtained LastFM session info,", session); // {"name": "LASTFM_USERNAME", "key": "THE_USER_SESSION_KEY"}
-                        console.log("[LastFM] Saving session info to disk.")
-                        let tempData = JSON.stringify(session)
-                        fs.writeFile(this.sessionPath, tempData, (err: any) => {
-                            if (err)
-                                console.log("[LastFM][fs]", err)
-                            else {
-                                console.log("[LastFM][fs] File was written successfully.")
-                                this.authenticateFromFile()
-                                new electron.Notification({
-                                    title: electron.app.getName(),
-                                    body: "Successfully logged into LastFM using Authentication Key."
-                                }).show()
-                            }
-                        })
-                    });
-                } else {
-                    this.authenticateFromFile()
-                }
-            })
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    private scrobbleSong(attributes: any) {
-        if (this._timer) clearTimeout(this._timer);
-        var self = this;
-        this._timer = setTimeout(async () => {
-            const currentAttributes = attributes;
-
-            if (!self._lastfm || self._lastfm.cachedAttributes === attributes) {
-                return
-            }
-
-            if (self._lastfm.cachedAttributes) {
-                if (self._lastfm.cachedAttributes.playParams.id === attributes.playParams.id) return;
-            }
-
-            const artist = await this.getPrimaryArtist(attributes)
-            const album = this.getAlbumName(attributes)
-
-            if (currentAttributes.status && currentAttributes === attributes) {
-                if (fs.existsSync(this.sessionPath)) {
-                    // Scrobble playing song.
-                    if (attributes.status === true) {
-                        self._lastfm.track.scrobble({
-                            'artist': artist,
-                            'track': attributes.name,
-                            'album': album,
-                            'albumArtist': artist,
-                            'timestamp': new Date().getTime() / 1000
-                        }, function (err: any, scrobbled: any) {
-                            if (err) {
-                                return console.error('[LastFM] An error occurred while scrobbling', err);
-                            }
-
-                            console.log('[LastFM] Successfully scrobbled: ', scrobbled);
-                        });
-                        self._lastfm.cachedAttributes = attributes
-                    }
-                } else {
-                    self.authenticate();
-                }
-            } else {
-                return console.log('[LastFM] Did not add ', attributes.name, '—', artist, 'because now playing a other song.');
-            }
-        }, Math.round(attributes.durationInMillis * Math.min((self._store.lastfm.scrobble_after / 100), 0.8)));
-    }
-
-    private async updateNowPlayingSong(attributes: any) {
-        if (!this._lastfm || this._lastfm.cachedNowPlayingAttributes === attributes || !this._store.lastfm.NowPlaying) {
-            return
-        }
-
-        if (this._lastfm.cachedNowPlayingAttributes) {
-            if (this._lastfm.cachedNowPlayingAttributes.playParams.id === attributes.playParams.id) return;
-        }
-
-        if (fs.existsSync(this.sessionPath)) {
-            const artist = await this.getPrimaryArtist(attributes)
-            const album = this.getAlbumName(attributes)
-
-            // update Now Playing
-            if (attributes.status === true) {
-                this._lastfm.track.updateNowPlaying({
-                    'artist': artist,
-                    'track': attributes.name,
-                    'album': album,
-                    'albumArtist': artist
-                }, function (err: any, nowPlaying: any) {
-                    if (err) {
-                        return console.error('[LastFM] An error occurred while updating nowPlayingSong', err);
-                    }
-
-                    console.log('[LastFM] Successfully updated nowPlayingSong', nowPlaying);
-                });
-                this._lastfm.cachedNowPlayingAttributes = attributes
-            }
-
-        } else {
-            this.authenticate()
-        }
-    }
-
-    private getAlbumName(attributes: any): string {
-        return attributes.albumName.replace(/ - Single| - EP/g, '');
-    }
-
-    private async getPrimaryArtist(attributes: any) {
-        const songId = attributes.playParams.catalogId || attributes.playParams.id
-
-        if (!this._store.lastfm.enabledRemoveFeaturingArtists || !songId) return attributes.artistName;
-
-        const res = await this._win.webContents.executeJavaScript(`
-            (async () => {
-                const subMk = await MusicKit.getInstance().api.v3.music("/v1/catalog/" + MusicKit.getInstance().storefrontId + "/songs/${songId}", {
-                    include: {
-                        songs: ["artists"]
-                    }
-                })
-                if (!subMk) console.error('[LastFM] Request failed: /v1/catalog/us/songs/${songId}')
-                return subMk.data
-            })()
-        `).catch(console.error)
-        if (!res) return attributes.artistName
-
-        const data = res.data
-        if (!data.length) {
-            console.error(`[LastFM] Unable to locate song with id of ${songId}`)
-            return attributes.artistName;
-        }
-
-        const artists = res.data[0].relationships.artists.data
-        if (!artists.length) {
-            console.error(`[LastFM] Unable to find artists related to the song with id of ${songId}`)
-            return attributes.artistName;
-        }
-
-        const primaryArtist = artists[0]
-        return primaryArtist.attributes.name
-    }
-
-    /**
-     * Base Plugin Details (Eventually implemented into a GUI in settings)
-     */
-    public name: string = 'LastFMPlugin';
-    public description: string = 'LastFM plugin for Cider';
-    public version: string = '0.0.1';
-    public author: string = 'vapormusic / Cider Collective';
-
-    /**
-     * Runs on plugin load (Currently run on application start)
-     */
-    constructor(utils: { getApp: () => any; getStore: () => any; }) {
-        this._app = utils.getApp();
-        this._store = utils.getStore()
-        utils.getApp().on('second-instance', (_e: any, argv: any) => {
-            // Checks if first instance is authorized and if second instance has protocol args
-            argv.forEach((value: any) => {
-                if (value.includes('auth')) {
-                    console.log('[LastFMPlugin ok]')
-                    let authURI = String(argv).split('/auth/')[1];
-                    if (authURI.startsWith('lastfm')) { // If we wanted more auth options
-                        const authKey = authURI.split('lastfm?token=')[1];
-                        this._store.lastfm.enabled = true;
-                        this._store.lastfm.auth_token = authKey;
-                        console.log(authKey);
-                        this._win.webContents.send('LastfmAuthenticated', authKey);
-                        this.authenticate();
-                    }
-                }
-            })
+        // Register the ipcMain handlers
+        this._utils.getIPCMain().handle('lastfm:url', (event: any) => {
+            console.debug(`${lastfm.name}:url`)
+            return this._lfm.getAuthenticationUrl({"cb": "cider://auth/lastfm"})
         })
         electron.app.on('open-url', (event: any, arg: any) => {
             console.log('[LastFMPlugin] yes')
@@ -263,12 +66,51 @@ export default class LastFMPlugin {
      * Runs on song change
      * @param attributes Music Attributes
      */
-    nowPlayingItemDidChangeLastFM(attributes: any): void {
-        if (!this._store.general.privateEnabled) {
-            attributes.status = true
-            if (!this._store.lastfm.filterLoop) {
-                this._lastfm.cachedNowPlayingAttributes = false;
-                this._lastfm.cachedAttributes = false
+    onNowPlayingItemDidChange(attributes: any): void {
+        if (this._utils.getStoreValue("general.privateEnabled")) return;
+        this._attributes = attributes
+        if (!attributes?.lfmTrack || !attributes?.lfmAlbum) {
+            this.verifyTrack(attributes)
+            return
+        }
+        this.scrobbleTrack(attributes)
+        this.updateNowPlayingTrack(attributes)
+    }
+
+    /**
+     * Initialize LastFM
+     * @param token
+     * @param api
+     * @private
+     */
+    private initializeLastFM(token: string, api: { key: string, secret: string }): void {
+        const LastfmAPI = require("lastfmapi")
+        this._lfm = new LastfmAPI({
+            'api_key': api.key,
+            'secret': api.secret,
+        });
+
+        if (this._utils.getStoreValue("connectivity.lastfm.secrets.username") && this._utils.getStoreValue("connectivity.lastfm.secrets.key")) {
+            this._lfm.setSessionCredentials(this._utils.getStoreValue("connectivity.lastfm.secrets.username"), this._utils.getStoreValue("connectivity.lastfm.secrets.key"));
+            this._authenticated = true;
+        } else {
+            this.authenticateLastFM(token)
+        }
+    }
+
+    /**
+     * Authenticate the user with the given token
+     * @param token
+     * @private
+     */
+    private authenticateLastFM(token: string): void {
+        if (!token) return;
+        this._lfm.authenticate(token, (err: any, session: any) => {
+            if (err) {
+                console.error(err);
+
+                this._utils.getWindow().webContents.executeJavaScript(`app.notyf.error("${err.message}");`)
+                return;
             }
             this.updateNowPlayingSong(attributes)
             this.scrobbleSong(attributes)
