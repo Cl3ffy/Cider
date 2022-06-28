@@ -246,6 +246,7 @@ const app = new Vue({
         notyf: notyf,
         idleTimer: null,
         idleState: false,
+        appVisible: true
     },
     watch: {
         cfg: {
@@ -277,6 +278,12 @@ const app = new Vue({
         }, false)
     },
     methods: {
+        hotReload() {
+            this.appVisible = false
+            setTimeout(() => {
+                this.appVisible = true
+            }, 1000)
+        },
         setWindowHash(route = "") {
             window.location.hash = `#${route}`;
         },
