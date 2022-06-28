@@ -1063,7 +1063,7 @@ const app = new Vue({
                 this.checkForThemeUpdates()
             }
 
-            ipcRenderer.send("scanLibrary",app.cfg.libraryPrefs.localPaths)
+            ipcRenderer.invoke("scanLibrary")
         },
         showFoo(querySelector, time) {
             clearTimeout(this.idleTimer);
