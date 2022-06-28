@@ -3,7 +3,7 @@ import {app, BrowserWindow as bw, ipcMain, ShareMenu, shell, screen, dialog} fro
 import * as windowStateKeeper from "electron-window-state";
 import * as express from "express";
 import * as getPort from "get-port";
-import {search} from "youtube-search-without-api-key";
+import { search } from "youtube-search-without-api-key";
 import {
     existsSync,
     rmSync,
@@ -16,14 +16,14 @@ import {
     rmdirSync,
     lstatSync,
 } from "fs";
-import {Stream} from "stream";
-import {networkInterfaces} from "os";
+import { Stream } from "stream";
+import { networkInterfaces } from "os";
 import * as mm from 'music-metadata';
 import fetch from 'electron-fetch'
-import {wsapi} from "./wsapi";
-import {utils} from './utils';
-import {Plugins} from "./plugins";
-import {watch} from "chokidar";
+import { wsapi } from "./wsapi";
+import { utils } from './utils';
+import { Plugins } from "./plugins";
+import { watch } from "chokidar";
 import * as os from "os";
 import wallpaper from "wallpaper";
 import * as AdmZip from "adm-zip";
@@ -125,6 +125,7 @@ export class BrowserWindow {
                 "components/artist-chip",
                 "components/hello-world",
                 "components/inline-collection-list",
+                "components/settings-window",
             ],
             appRoutes: [
                 {
@@ -203,12 +204,12 @@ export class BrowserWindow {
                     component: `<cider-browse :data="browsepage"></cider-browse>`,
                     condition: `page == 'browse'`,
                     onEnter: ``
-                },{
+                }, {
                     page: "groupings",
                     component: `<cider-groupings :data="browsepage"></cider-groupings>`,
                     condition: `page == 'groupings'`,
                     onEnter: ``
-                },{
+                }, {
                     page: "charts",
                     component: `<cider-charts :data="browsepage"></cider-charts>`,
                     condition: `page == 'charts'`,
@@ -294,7 +295,7 @@ export class BrowserWindow {
         show: false,
         // backgroundColor: "#1E1E1E",
         titleBarStyle: 'hidden',
-        trafficLightPosition: {x: 15, y: 20},
+        trafficLightPosition: { x: 15, y: 20 },
         webPreferences: {
             experimentalFeatures: true,
             nodeIntegration: true,
@@ -360,7 +361,7 @@ export class BrowserWindow {
      * @yields {object} Electron browser window
      */
     async createWindow(): Promise<Electron.BrowserWindow> {
-        this.clientPort = await getPort({port: 9000});
+        this.clientPort = await getPort({ port: 9000 });
         BrowserWindow.verifyFiles();
         this.StartWatcher(utils.getPath('themes'));
 
@@ -497,9 +498,9 @@ export class BrowserWindow {
         app.get("/cideraudio/impulses/:file", (req, res) => {
             const impulseExternals = join(utils.getPath("externals"), "/impulses/")
             const impulseFile = join(impulseExternals, req.params.file)
-            if(existsSync(impulseFile)) {
+            if (existsSync(impulseFile)) {
                 res.sendFile(impulseFile)
-            }else{
+            } else {
                 res.sendFile(join(utils.getPath('srcPath'), "./renderer/audio/impulses/" + req.params.file))
             }
         })
@@ -649,7 +650,7 @@ export class BrowserWindow {
         remote.use(express.static(join(utils.getPath('srcPath'), "./web-remote/")))
         remote.set("views", join(utils.getPath('srcPath'), "./web-remote/views"));
         remote.set("view engine", "ejs");
-        getPort({port: 6942}).then((port: number) => {
+        getPort({ port: 6942 }).then((port: number) => {
             this.remotePort = port;
             // Start Remote Discovery
             this.broadcastRemote()
@@ -686,7 +687,7 @@ export class BrowserWindow {
                     callback({
                         redirectURL: `http://localhost:${this.clientPort}/ciderlocal/${Buffer.from(text).toString('base64url')}`,
                     });
-                }else {
+                } else {
                     callback({
                         cancel: false,
                     });
@@ -728,7 +729,7 @@ export class BrowserWindow {
                     'KHTML, like Gecko) Mobile/17D50 UCBrowser/12.8.2.1268 Mobile AliApp(TUnionSDK/0.1.20.3) '
                     details.requestHeaders['Referer'] = "https://y.qq.com/portal/player.html"
                 }
-                callback({requestHeaders: details.requestHeaders});
+                callback({ requestHeaders: details.requestHeaders });
             }
         );
 
@@ -785,7 +786,7 @@ export class BrowserWindow {
             const Jimp = require("jimp")
             const img = await Jimp.read(wpPath)
             const blurAmount = args.blurAmount ?? 256
-            if(blurAmount) {
+            if (blurAmount) {
                 img.blur(blurAmount)
             }
             const screens = await screen.getAllDisplays()
@@ -822,7 +823,7 @@ export class BrowserWindow {
                     }
                     // if path is directory, delete it
                     if (lstatSync(path).isDirectory()) {
-                        await rmdirSync(path, {recursive: true});
+                        await rmdirSync(path, { recursive: true });
                     } else {
                         // if path is file, delete it
                         await unlinkSync(path);
@@ -853,7 +854,7 @@ export class BrowserWindow {
             // remove WidevineCDM from appdata folder
             const widevineCdmPath = join(app.getPath("userData"), "./WidevineCdm");
             if (existsSync(widevineCdmPath)) {
-                rmSync(widevineCdmPath, {recursive: true, force: true})
+                rmSync(widevineCdmPath, { recursive: true, force: true })
             }
             // reinstall WidevineCDM
             app.relaunch()
@@ -1145,7 +1146,7 @@ export class BrowserWindow {
 
         // Move window
         ipcMain.on("windowmove", (_event, x, y) => {
-            BrowserWindow.win.setBounds({x, y});
+            BrowserWindow.win.setBounds({ x, y });
         });
 
         //Fullscreen
@@ -1160,7 +1161,7 @@ export class BrowserWindow {
 
         //Fullscreen
         ipcMain.on('detachDT', (_event, _) => {
-            BrowserWindow.win.webContents.openDevTools({mode: 'detach'});
+            BrowserWindow.win.webContents.openDevTools({ mode: 'detach' });
         })
 
         ipcMain.handle('relaunchApp', (_event, _) => {
@@ -1198,11 +1199,11 @@ export class BrowserWindow {
 
 
         ipcMain.on("scanLibrary", async (event, folders) => {
-            async function getFiles(dir : any) {
+            async function getFiles(dir: any) {
                 const dirents = await readdir(dir, { withFileTypes: true });
                 const files = await Promise.all(dirents.map((dirent: any) => {
-                  const res = path.resolve(dir, dirent.name);
-                  return dirent.isDirectory() ? getFiles(res) : res;
+                    const res = path.resolve(dir, dirent.name);
+                    return dirent.isDirectory() ? getFiles(res) : res;
                 }));
                 return Array.prototype.concat(...files);
               }
@@ -1280,8 +1281,12 @@ export class BrowserWindow {
                 this.localSongsArts = metadatalistart;
                 BrowserWindow.win.webContents.send('getUpdatedLocalList', metadatalist);
             }
+            // console.log('metadatalist', metadatalist);
+            this.localSongs = metadatalist;
+            BrowserWindow.win.webContents.send('getUpdatedLocalList', metadatalist);
+        }
 
-            )
+        )
 
         ipcMain.on('writeWAV', (event, leftpcm, rightpcm, bufferlength) => {
 
@@ -1449,8 +1454,8 @@ export class BrowserWindow {
                     console.log('sc', SoundCheckTag)
                     BrowserWindow.win.webContents.send('SoundCheckTag', SoundCheckTag)
                 }).catch(err => {
-                console.log(err)
-            });
+                    console.log(err)
+                });
         });
 
 
@@ -1509,35 +1514,38 @@ export class BrowserWindow {
         /* *********************************************************************************************
          * Window Events
          * **********************************************************************************************/
-        if (process.platform === "win32") {
-            let WND_STATE = {
-                MINIMIZED: 0,
-                NORMAL: 1,
-                MAXIMIZED: 2,
-                FULL_SCREEN: 3,
-            };
-            let wndState = WND_STATE.NORMAL;
+        let WND_STATE = {
+            MINIMIZED: 0,
+            NORMAL: 1,
+            MAXIMIZED: 2,
+            FULL_SCREEN: 3,
+        };
+        let wndState = WND_STATE.NORMAL;
 
-            BrowserWindow.win.on("resize", (_: any) => {
-                const isMaximized = BrowserWindow.win.isMaximized();
-                const isMinimized = BrowserWindow.win.isMinimized();
-                const isFullScreen = BrowserWindow.win.isFullScreen();
-                const state = wndState;
-                if (isMinimized && state !== WND_STATE.MINIMIZED) {
-                    wndState = WND_STATE.MINIMIZED;
-                } else if (isFullScreen && state !== WND_STATE.FULL_SCREEN) {
-                    wndState = WND_STATE.FULL_SCREEN;
-                } else if (isMaximized && state !== WND_STATE.MAXIMIZED) {
-                    wndState = WND_STATE.MAXIMIZED;
-                    BrowserWindow.win.webContents.executeJavaScript(`app.chrome.maximized = true`);
-                } else if (state !== WND_STATE.NORMAL) {
-                    wndState = WND_STATE.NORMAL;
-                    BrowserWindow.win.webContents.executeJavaScript(
-                        `app.chrome.maximized = false`
-                    );
-                }
-            });
-        }
+        BrowserWindow.win.on("resize", (_: any) => {
+            const isMaximized = BrowserWindow.win.isMaximized();
+            const isMinimized = BrowserWindow.win.isMinimized();
+            const isFullScreen = BrowserWindow.win.isFullScreen();
+            const state = wndState;
+            if (isMinimized && state !== WND_STATE.MINIMIZED) {
+                wndState = WND_STATE.MINIMIZED;
+                BrowserWindow.win.webContents.send('window-state-changed', 'minimized');
+            } else if (isFullScreen && state !== WND_STATE.FULL_SCREEN) {
+                wndState = WND_STATE.FULL_SCREEN;
+                BrowserWindow.win.webContents.send('window-state-changed', 'fullscreen')
+            } else if (isMaximized && state !== WND_STATE.MAXIMIZED) {
+                wndState = WND_STATE.MAXIMIZED;
+                BrowserWindow.win.webContents.send('window-state-changed', 'maximized')
+                BrowserWindow.win.webContents.executeJavaScript(`app.chrome.maximized = true`);
+            } else if (state !== WND_STATE.NORMAL) {
+                wndState = WND_STATE.NORMAL;
+                BrowserWindow.win.webContents.send('window-state-changed', 'normal')
+                BrowserWindow.win.webContents.executeJavaScript(
+                    `app.chrome.maximized = false`
+                );
+            }
+        });
+
 
         let isQuiting = false
 
@@ -1580,10 +1588,10 @@ export class BrowserWindow {
         // Set window Handler
         BrowserWindow.win.webContents.setWindowOpenHandler((x: any) => {
             if (x.url.includes("apple") || x.url.includes("localhost")) {
-                return {action: "allow"};
+                return { action: "allow" };
             }
             shell.openExternal(x.url).catch(console.error);
-            return {action: "deny"};
+            return { action: "deny" };
         });
     }
 
@@ -1639,7 +1647,7 @@ export class BrowserWindow {
             "CtlN": "Cider",
             "iV": "196623"
         };
-        let server2 = mdns.createAdvertisement(x, `${await getPort({port: 3839})}`, {
+        let server2 = mdns.createAdvertisement(x, `${await getPort({ port: 3839 })}`, {
             name: encoded,
             txt: txt_record
         });
