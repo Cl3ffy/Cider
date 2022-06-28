@@ -30,20 +30,21 @@ export default class LastFMPlugin {
             console.debug(`${lastfm.name}:url`)
             return this._lfm.getAuthenticationUrl({"cb": "cider://auth/lastfm"})
         })
-        electron.app.on('open-url', (event: any, arg: any) => {
-            console.log('[LastFMPlugin] yes')
-            event.preventDefault();
-            if (arg.includes('auth')) {
-                let authURI = String(arg).split('/auth/')[1];
-                if (authURI.startsWith('lastfm')) { // If we wanted more auth options
-                    const authKey = authURI.split('lastfm?token=')[1];
-                    this._store.lastfm.enabled = true;
-                    this._store.lastfm.auth_token = authKey;
-                    this._win.webContents.send('LastfmAuthenticated', authKey);
-                    console.log(authKey);
-                    this.authenticate();
-                }
-            }
+
+        this._utils.getIPCMain().on('lastfm:auth', (event: any, token: string) => {
+            console.debug(`${lastfm.name}:auth`, token)
+            this.authenticateLastFM(token)
+        })
+
+        this._utils.getIPCMain().on('lastfm:disconnect', (_event: any) => {
+            this._lfm.setSessionCredentials(null, null);
+            this._authenticated = false;
+            console.debug(`${lastfm.name}:disconnect`)
+        })
+
+        this._utils.getIPCMain().on('lastfm:nowPlayingChange', (event: any, attributes: any) => {
+            if (this._utils.getStoreValue("connectivity.lastfm.filter_loop")) return;
+            this.onNowPlayingItemDidChange(attributes)
         })
     }
 
