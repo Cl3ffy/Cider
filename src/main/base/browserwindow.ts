@@ -609,8 +609,7 @@ export class BrowserWindow {
         //region Connect Integration
         app.get("/connect/set-cc-user/:data", (req, res) => {
             //utils.getStoreValue('connectUser', JSON.parse()) // [Connect] Save user in store
-            utils.setStoreValue('connectUser', JSON.parse(req.params.data))
-            utils.getWindow().reload()
+            utils.getWindow().webContents.send('setStoreValue', 'connectUser', JSON.parse(req.params.data))
             res.redirect(`https://connect.cidercollective.dev/linked.html`)
         });
 
