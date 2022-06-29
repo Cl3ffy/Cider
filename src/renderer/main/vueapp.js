@@ -4435,6 +4435,9 @@ const app = new Vue({
                 case "advanced":
                     this.$store.state.pageState.settings.currentTabIndex = 6
                     break;
+                case "keybindings" :
+                    this.$store.state.pageState.settings.currentTabIndex = 7
+                    break;
             }
             app.modals.settings = true
         },
