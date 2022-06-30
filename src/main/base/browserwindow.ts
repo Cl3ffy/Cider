@@ -1184,6 +1184,8 @@ export class BrowserWindow {
 
 
         ipcMain.handle("scanLibrary", async (event, folders) => {
+            const oldmetadatalist = await LocalFiles.sendOldLibrary()
+            BrowserWindow.win.webContents.send('getUpdatedLocalList', oldmetadatalist);
             const metadatalist = await LocalFiles.scanLibrary()
             BrowserWindow.win.webContents.send('getUpdatedLocalList', metadatalist);
         })
