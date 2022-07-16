@@ -227,8 +227,8 @@
                     this.video = null
                 }
             }
-            ipcRenderer.send('get-remote-pair-ip-address')
-            ipcRenderer.on('send-remote-pair-ip-address', (event, url) => {
+            ipcRenderer.send('get-party-remote-pair-img')
+            ipcRenderer.on('send-party-remote-pair-img', (event, url) => {
                 document.getElementById('qr').src = url;
             })
         },

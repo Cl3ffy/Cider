@@ -1360,9 +1360,9 @@ export class BrowserWindow {
         });
 
 
-        ipcMain.on('get-remote-pair-ip-address', (_event, _) => { // Linux and Windows
-            let url = `http://${BrowserWindow.getIP()}:${this.remotePort}`;
-            BrowserWindow.win.webContents.send('send-remote-pair-ip-address', (`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${Buffer.from(encodeURI(url))}&bgcolor=250-35-59&color=235-235-235&margin=10`).toString());
+        ipcMain.on('get-party-remote-pair-img', (_event, _) => {
+            let url = `http://${BrowserWindow.getIP()}:${this.remotePort}/?mode=party`;
+            BrowserWindow.win.webContents.send('send-party-remote-pair-img', (`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${Buffer.from(encodeURI(url))}&bgcolor=250-35-59&color=235-235-235&margin=10`).toString());
         });
 
 
