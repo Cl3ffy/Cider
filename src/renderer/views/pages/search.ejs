@@ -1,6 +1,6 @@
 <script type="text/x-template" id="cider-search">
     <div class="content-inner search-page">
-        <div class="search-input-container fs-search" v-if="$root.appMode == 'fullscreen'" >
+        <div class="search-input-container fs-search" v-if="$root.appMode == 'fullscreen' || $root.appMode == 'partyfullscreen'" >
             <div class="search-input--icon"></div>
             <input type="search" spellcheck="false" @focus="$root.search.showHints = true"
                    @blur="$root.setTimeout(()=>{$root.search.showHints = false}, 300)"

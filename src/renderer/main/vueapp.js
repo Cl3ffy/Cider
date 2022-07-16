@@ -4486,15 +4486,14 @@ const app = new Vue({
                 app.appMode = 'player';
             }
         },
-        // TODO: Fix multiple modes. Currently both buttons open party mode.
         partyFullscreen(flag) {
             this.fullscreenState = flag;
             if (flag) {
                 ipcRenderer.send('setFullScreen', true);
-                app.appMode = 'fullscreen';
+                app.appMode = 'partyfullscreen';
 
                 document.addEventListener('keydown', event => {
-                    if (event.key === 'Escape' && app.appMode === 'fullscreen') {
+                    if (event.key === 'Escape' && app.appMode === 'partyfullscreen') {
                         this.partyFullscreen(false);
                     }
                 });

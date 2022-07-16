@@ -50,7 +50,7 @@
         },
         watch: {         
             time: function () {
-                if (((app.lyricon && app.drawer.open) || app.appMode == 'fullscreen') && this.$refs.lyricsview) {
+                if (((app.lyricon && app.drawer.open) || app.appMode == 'fullscreen' || app.appMode == 'partyfullscreen') && this.$refs.lyricsview) {
                     let currentLine = this.$refs.lyricsview.querySelector(`.lyric-line.active`)
                     if (currentLine && currentLine.getElementsByClassName('lyricWaiting').length > 0) {
                         let duration = currentLine.getAttribute("end") - currentLine.getAttribute("start");
@@ -124,7 +124,7 @@
                     if (this.time + delayfix >= this.lyrics[i].startTime && this.time + delayfix <= app.lyrics[i].endTime) {
                         if (app.currentLyricsLine != i) {
                             app.currentLyricsLine = i;
-                            if (((app.lyricon && app.drawer.open) || app.appMode == 'fullscreen') && this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${i}"]`)) {
+                            if (((app.lyricon && app.drawer.open) || app.appMode == 'fullscreen' || app.appMode == 'partyfullscreen') && this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${i}"]`)) {
                                if (this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${prevLine}"]`)) {this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${prevLine}"]`).classList.remove("active");}
                                 this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${i}"]`).classList.add("active")
                                 if (this.checkIfScrollIsStatic) {
@@ -162,7 +162,7 @@
                     }
                 }
                 try{
-                    if ((app.drawer.open) || app.appMode == 'fullscreen'){ 
+                    if ((app.drawer.open) || app.appMode == 'fullscreen' || app.appMode == 'partyfullscreen') { 
                         try{this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${prevLine}"]`).childNodes.classList.remove("verse-active");} catch(e){}
                                 for (child of this.$refs.lyricsview.querySelector(`.lyric-line[line-index="${app.currentLyricsLine}"]`).querySelectorAll(".verse")){
                                     if (this.time + 0.1 >= child.getAttribute("lyricstart") * 1 + child.getAttribute("versestart") * 1){
