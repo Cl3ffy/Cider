@@ -65,7 +65,7 @@
         },
         computed: {
             displayQueueItems() {
-                const displayLimit = 3;
+                const displayLimit = 2;
                 const lastDisplayPosition = Math.min(displayLimit + this.queuePosition, this.queueItems.length);
                 return this.queueItems.slice(this.queuePosition, lastDisplayPosition);
             }
