@@ -51,7 +51,11 @@ export class LocalFiles {
         // Cider-Utils supported formats.
         for (var audio of parseFileQueue) {
             try {
-                const metadata = await parseFile(audio);
+                var metadata = await parseFile(audio);
+                if (metadata == null) {
+                    metadata = await mm.parseFile(audio);
+                }
+
                 let lochash = Md5.hashStr(audio) ?? numid;
                 if (metadata != null) {
                     let form = {
