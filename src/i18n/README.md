@@ -521,3 +521,8 @@ Update 03/07/2022 20:00 UTC
 
 * `term.plugins`: Added to `en_US`
 * `settings.header.visual.styles`: Added to `en_US`
+
+Update 17/07/2022 23:00 UTC
+
+* `term.partymode`: Added to `en_US`
+* `term.partyNotice`: Added to `en_US`

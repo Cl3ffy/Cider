@@ -204,6 +204,8 @@
   "term.reload" : "Reload Cider?",
   "term.toggleprivate" : "Toggle Private Session",
   "term.webremote" : "Web Remote",
+  "term.partyMode": "Party Mode",
+  "term.partyNotice": "Scan to add Music",
   "term.cast" : "Cast",
   "term.cast2" : "Cast to Devices",
   "term.quit" : "Quit",
