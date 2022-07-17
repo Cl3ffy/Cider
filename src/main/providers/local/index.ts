@@ -52,8 +52,8 @@ export class LocalFiles {
         for (var audio of parseFileQueue) {
             try {
                 var metadata = await parseFile(audio);
-                if (metadata == null) {
-                    metadata = await mm.parseFile(audio);
+                if (metadata == null || metadata.container === "OGG") {
+                    metadata = await mm.parseFile(audio); // Fallback
                 }
 
                 let lochash = Md5.hashStr(audio) ?? numid;
