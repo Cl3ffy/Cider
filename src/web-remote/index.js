@@ -168,13 +168,15 @@ var app = new Vue({
             }
         },
         seekTo(time, adjust = true) {
-            if (adjust) {
-                time = parseInt(time / 1000)
+            if (this.checkMode() != "party") {
+                if (adjust) {
+                    time = parseInt(time / 1000)
+                }
+                socket.send(JSON.stringify({
+                    action: "seek",
+                    time: time
+                }));
             }
-            socket.send(JSON.stringify({
-                action: "seek",
-                time: time
-            }));
         },
         setVolume(volume) {
             socket.send(JSON.stringify({
