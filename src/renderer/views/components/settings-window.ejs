@@ -374,18 +374,11 @@
                                 <div class="md-option-line" v-show="app.cfg.advanced.AudioContext">
                                     <div class="md-option-segment" style="white-space: pre-line;">
                                         {{$root.getLz('settings.option.audio.enableAdvancedFunctionality.audioNormalization')}}
-                                        <small>{{app.cfg.audio.equalizer.vibrantBass != 0 ||
-                                            app.cfg.audio.maikiwiAudio.spatial
-                                            === true || app.cfg.audio.maikiwiAudio.ciderPPE === true ?
-                                            `${$root.getLz('settings.option.audio.enableAdvancedFunctionality.audioNormalization.description')}\n${$root.getLz('settings.option.audio.enableAdvancedFunctionality.audioNormalization.disabled')}`
-                                            :
-                                            $root.getLz('settings.option.audio.enableAdvancedFunctionality.audioNormalization.description')}}</small>
                                     </div>
                                     <div class="md-option-segment md-option-segment_auto">
                                         <label>
                                             <input type="checkbox" v-model="app.cfg.audio.normalization"
                                                    v-on:change="toggleNormalization"
-                                                   :disabled="app.cfg.audio.maikiwiAudio.spatial === true || app.cfg.audio.maikiwiAudio.ciderPPE === true || app.cfg.audio.maikiwiAudio.atmosphereRealizer1 === true || app.cfg.audio.maikiwiAudio.atmosphereRealizer2 === true"
                                                    switch/>
                                         </label>
                                     </div>
@@ -417,19 +410,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </b-tab>
-                <b-tab v-if="app.cfg.advanced.AudioContext">
-                    <template #title>
-                        <div>
-                            <svg-icon url="./assets/feather/zap.svg" classes="svg-md" name="settings-audiolabs"/>
-                        </div>
-                        <div>
-                            {{ $root.getLz('settings.option.audio.audioLab') }}
-                        </div>
-                    </template>
-                    <div class="settings-tab-content">
-                        <audiolabs-page/>
                     </div>
                 </b-tab>
                 <b-tab>

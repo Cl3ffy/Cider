@@ -4397,15 +4397,6 @@ const app = new Vue({
                                 app.modals.audioSettings = false
                             }
                         },
-                        {
-                            "id": "audioLab",
-                            "icon": "../views/svg/speaker.svg",
-                            "name": app.getLz('settings.option.audio.audioLab'),
-                            "hidden": true,
-                            "action": function () {
-                                app.openSettingsPage('audiolabs')
-                            }
-                        },
                     ]
                 }
             }
