@@ -119,7 +119,7 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
-        run: yarn build && yarn electron-builder --mac=pkg --identity=${{ secrets.CSC_LINK }}
+        run: yarn build && yarn electron-builder --mac=pkg
 
 
 #          pkgbuild --component dist/mac-universal/Cider.app --install-location /Applications dist/Cider-${{ env.APP_VERSION }}-universal.pkg --sign ${{ secrets.PSC_NAME }}
