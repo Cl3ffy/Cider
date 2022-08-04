@@ -61,7 +61,7 @@ jobs:
 
       #################################################
       - name: Build the DMG
-        if: ${{ matrix.Plan == dmg }}
+        if: matrix.Plan == "dmg"
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -74,11 +74,11 @@ jobs:
         run: yarn dist:universalNotWorking -p never
 
       - name: Add license to DMG
-        if: ${{ matrix.Plan == dmg }}
+        if: matrix.Plan == "dmg"
         run: npx dmg-license resources/license.json dist/*.dmg
 
       - name: Upload Files (DMG)
-        if: ${{ matrix.Plan == dmg }}
+        if: matrix.Plan == "dmg"
         uses: svenstaro/upload-release-action@v2
         with:
           repo_name: ciderapp/cider-releases
@@ -87,7 +87,7 @@ jobs:
           tag: v${{ env.APP_VERSION }}
 
       - name: Upload macOS Latest
-        if: ${{ matrix.Plan == dmg }}
+        if: matrix.Plan == "dmg"
         uses: svenstaro/upload-release-action@v2
         with:
           repo_name: ciderapp/cider-releases
@@ -96,7 +96,7 @@ jobs:
           tag: v${{ env.APP_VERSION }}
 
       - name: Upload a Build Artifact
-        if: ${{ matrix.Plan == dmg }}
+        if: matrix.Plan == "dmg"
         uses: actions/upload-artifact@v2.2.3
         with:
           name: Cider-macOS-${{ env.APP_VERSION }}-dmg
@@ -106,14 +106,14 @@ jobs:
       #################################################
 
       - name: Import
-        if: ${{ matrix.Plan == pkg }}
+        if: matrix.Plan == "pkg"
         uses: apple-actions/import-codesign-certs@v1
         with:
           p12-file-base64: ${{ secrets.CSC_LINK }}
           p12-password: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Build the PKG
-        if: ${{ matrix.Plan == pkg }}
+        if: matrix.Plan == "pkg"
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -126,14 +126,14 @@ jobs:
           xcrun stapler staple dist/Cider*.pkg || true
 
       - name: Upload a Build Artifact
-        if: ${{ matrix.Plan == pkg }}
+        if: matrix.Plan == "pkg"
         uses: actions/upload-artifact@v2.2.3
         with:
           name: Cider-macOS-${{ env.APP_VERSION }}-pkg
           path: dist/*.pkg
 
       - name: Upload Files (PKG)
-        if: ${{ matrix.Plan == pkg }}
+        if: matrix.Plan == "pkg"
         uses: svenstaro/upload-release-action@v2
         with:
           repo_name: ciderapp/cider-releases
