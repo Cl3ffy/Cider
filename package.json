@@ -124,6 +124,11 @@
       "version": "18.3.5+wvcus",
       "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
     },
+    "publish": [{
+      "provider": "github",
+      "owner": "ciderapp",
+      "repo": "cider-releases"
+  }],
     "appId": "cider",
     "afterPack": "./resources/afterPack.js",
     "afterSign": "./resources/notarize.js",
