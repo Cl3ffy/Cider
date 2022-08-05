@@ -35,8 +35,7 @@
     "msft": "yarn build && electron-builder -c msft-package.json",
     "mstest": "yarn build && electron-builder -c msft-test.json",
     "postinstall": "electron-builder install-app-deps",
-    "prettier": "npx prettier --write '**/*.{js,json,ts,css,less}'",
-    "afterAllArtifactBuild": "electron-builder-notarize-pkg"
+    "prettier": "npx prettier --write '**/*.{js,json,ts,css,less}'"
   },
   "dependencies": {
     "@sentry/electron": "^3.0.7",
@@ -89,7 +88,6 @@
     "@types/ws": "^8.5.3",
     "electron": "git+https://github.com/castlabs/electron-releases.git#18-x-y",
     "electron-builder": "^23.3.3",
-    "electron-builder-notarize-pkg": "^1.2.0",
     "electron-webpack": "^2.8.2",
     "less": "^4.1.3",
     "musickit-typescript": "^1.2.4",
