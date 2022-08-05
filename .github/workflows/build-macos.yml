@@ -121,7 +121,6 @@ jobs:
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
         run: |
           yarn build && yarn electron-builder --mac=pkg -p never
-          yarn electron-builder-notarize-pkg
 #          xcrun altool --notarize-app --primary-bundle-id com.ciderapp.cider -f dist/Cider*.pkg  --username ${{ secrets.APPLEID }} --password ${{ secrets.APPLEIDPASS }}
 #          sleep 5m
 #          xcrun stapler staple dist/Cider*.pkg || true
