@@ -35,7 +35,8 @@
     "msft": "yarn build && electron-builder -c msft-package.json",
     "mstest": "yarn build && electron-builder -c msft-test.json",
     "postinstall": "electron-builder install-app-deps",
-    "prettier": "npx prettier --write '**/*.{js,json,ts,css,less}'"
+    "prettier": "npx prettier --write '**/*.{js,json,ts,css,less}'",
+    "afterAllArtifactBuild": "electron-builder-notarize-pkg"
   },
   "dependencies": {
     "@sentry/electron": "^3.0.7",
