@@ -119,13 +119,13 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
-        run: yarn build && yarn electron-builder --mac=pkg
-
+        run: |
+          yarn build && yarn electron-builder --mac=pkg -p never
+          xcrun altool --notarize-app --primary-bundle-id com.ciderapp.cider -f dist/Cider*.pkg  --username ${{ secrets.APPLEID }} --password ${{ secrets.APPLEIDPASS }}
+          sleep 5m
+          xcrun stapler staple dist/Cider*.pkg || true
 
 #          pkgbuild --component dist/mac-universal/Cider.app --install-location /Applications dist/Cider-${{ env.APP_VERSION }}-universal.pkg --sign ${{ secrets.PSC_NAME }}
-#          xcrun altool --notarize-app --primary-bundle-id com.ciderapp.cider -f dist/Cider*.pkg  --username ${{ secrets.APPLEID }} --password ${{ secrets.APPLEIDPASS }}
-#          sleep 5m
-#          xcrun stapler staple dist/Cider*.pkg || true
 
       - name: Upload a Build Artifact
         if: ${{ matrix.Plan == 'pkg' }}
